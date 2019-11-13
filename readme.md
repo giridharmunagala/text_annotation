@@ -3,7 +3,7 @@
 2. Install requirements using **pip install -r requirements.txt**
 3. Put your files in text format into /data/raw_text_files folder
 4. Annotated files will be written to /data/annotated_text folder in json format
-5. Run api using **python text_annotation_api.py**
+5. Run application using **python text_annotation_api.py**
 6. Open a web browser and go to **http://localhost:5076/** 
 
 ## Description
