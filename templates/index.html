@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+  <div style="display: none;" id="completed">
+      <img class="image-fluid" src="/static/img/checkered-flags-309794_1280.png"></img>
+  </div>
+  <span id="annotation">
+  <div class='col-md-8' style='margin: auto;'>
+    <div class='row'>
+      <h3>Text to annotate</h3>
+    </div>
+    <div class='row'>
+      <textarea id='sentence' cols="100" rows="10" style="border:solid 1px orange;">Welcome</textarea>
+    </div>
+    <div class='row'>
+      <h3>Selected string for annotation</h3>
+    </div>
+    <div class="row">
+      <textarea id='showSelectedText' cols="100" rows="5" style="border:solid 1px orange;"></textarea>
+
+    </div>
+    <br><br>
+    <div class='row'>
+      <h3>Annotation for the selected text</h3>
+    </div>
+    <div class="row">
+
+      <div class="btn-group mr-2" role="group" aria-label="First group">
+        <button type="button" class="btn btn-primary" id="name">Name</button>
+        <button type="button" class="btn btn-primary" id="location">Location</button>
+        <button type="button" class="btn btn-primary" id="collegeName">College</button>
+        <button type="button" class="btn btn-primary" id="skill">Skill</button>
+        <button type="button" class="btn btn-primary" id="eduCertName">Education</button>
+        <button type="button" class="btn btn-primary" id="duration">Duration</button>
+        <button type="button" class="btn btn-primary" id="designation">Designation</button>
+        <button type="button" class="btn btn-primary" id="company">Company</button>
+
+      </div>
+
+
+    </div>
+    <br><br>
+    <div>
+      <div>
+        <h3>Created annotation</h3>
+        <textarea id='showAnnotation' cols="100" rows="5" style="border:solid 1px orange;"></textarea>
+      </div>
+
+    </div>
+    <br><br>
+
+    <div class="row" id=Notification>
+      <div id='next_file'>
+        <h3>Annotations for one file completed. Please click the button to fetch next file<h3>
+            <button type="button" class="btn btn-primary btn-lg" id="write_file">Next file</button>
+      </div>
+      <!-- <br><br>
+                <br><br>  
+              <div id='entity_completion'>
+                  <h3>If annotations for one line completed. Please click the following button for next line<h3>
+                  <button type="button" class="btn btn-primary btn-lg" id="next_line">Next Line</button>
+                </div> -->
+    </div>
+  </div>
+</span>
+</body>
+<script>
+
+  let startIndex;
+  let endIndex;
+  let line_text;
+  let line_number;
+  let entities = []
+  let lines;
+  let fileName;
+  let selectedText;
+
+  $(document).ready(function () {
+    getNextFile();
+  });
+
+  // $('#next_line').click(function(){
+  //   showNextLine();
+  // });
+
+  function getNextFile() {
+    entities = []
+    $.ajax({
+      url: '/get_next_file',
+      type: "POST",
+      processData: false,
+      contentType: false,
+      beforeSend: function () {
+        console.log("Fetching next file");
+      },
+      success: function (result) {
+
+        if (result.completed == true) {
+         $("#annotation").css("display","none");
+         $("#completed").css("display","block");
+        }
+        
+
+        else if (result.status == true) {
+          lines = result.lines
+          fileName = result.fileName
+          // showNextLine();
+          $('#sentence').val(lines);
+
+        }
+      },
+      complete: function () {
+        //use loader and delete global variables
+      },
+      fail: function () {
+        alert('request failed');
+      }
+    });
+  };
+
+  // function showNextLine(){
+  //   console.log(line_number)
+  //   if(lines.length != 0){
+  //     line_number = lines[0].line_number;
+  //     line_text = lines[0].text;
+  //     lines.shift();
+  //     if(line_text.length == 0){
+  //       showNextLine();
+  //     }
+  //     $('#sentence').val(line_text);
+  //   }
+  //   else{
+  //     $('#next_file').css('display','block');
+  //   }
+  // };
+
+  $('#sentence').click(function () {
+    startIndex = $('#sentence').prop('selectionStart');
+    endIndex = $('#sentence').prop('selectionEnd');
+    selectedText = $('#sentence').val().substring(startIndex, endIndex);
+    $('#showSelectedText').val(selectedText);
+  });
+
+  $('#name').click(function () {
+    add_entity("name", startIndex, endIndex, selectedText, line_number);
+  });
+  $('#location').click(function () {
+    add_entity("location", startIndex, endIndex, selectedText, line_number);
+  });
+  $('#collegeName').click(function () {
+    add_entity("collegeName", startIndex, endIndex, selectedText, line_number);
+  });
+  $('#skill').click(function () {
+    add_entity("skill", startIndex, endIndex, selectedText, line_number);
+  });
+  $('#eduCertName').click(function () {
+    add_entity("eduCertName", startIndex, endIndex, selectedText, line_number);
+  });
+  $('#duration').click(function () {
+    add_entity("duration", startIndex, endIndex, selectedText, line_number);
+  });
+  $('#designation').click(function () {
+    add_entity("designation", startIndex, endIndex, selectedText, line_number);
+  });
+  $('#company').click(function () {
+    add_entity("company", startIndex, endIndex, selectedText, line_number);
+  });
+
+
+
+  function add_entity(label, startIndex, endIndex, text, line_number) {
+
+    var entity_dict = {
+      "startIndex": startIndex,
+      "endIndex": endIndex,
+      "text": text,
+      "line_number": line_number,
+      "label": label
+    };
+    entities.push(entity_dict)
+    $('#showAnnotation').val(JSON.stringify(entity_dict))
+    // $('#entity_completion').css("display", "block");
+    // $('#entity_completion').css("display", "none");
+  };
+
+  $('#write_file').click(function () {
+    let formdata = new FormData()
+    formdata.append("fileName", fileName)
+    formdata.append("entities", JSON.stringify({ "entities": entities }))
+    $.ajax({
+      url: '/write_entities_file',
+      type: "POST",
+      data: formdata,
+      processData: false,
+      contentType: false,
+      beforeSend: function () {
+        console.log("processing starts")
+      },
+      success: function (result) {
+
+        if (result.status == true) {
+          console.log('Successfully written file!');
+          // $('#next_file').css("display", "none");
+          getNextFile();
+        }
+      },
+      complete: function () {
+        //use loader and delete global variables
+      },
+      fail: function () {
+        alert('request failed');
+      }
+    });
+  });
+</script>
+
+</html>
